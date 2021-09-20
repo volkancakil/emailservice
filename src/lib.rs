@@ -1,5 +1,8 @@
+mod models;
+
 use actix_web::{dev::Server, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
 use std::net::TcpListener;
+use crate::models::FormData;
 
 async fn health_check() -> impl Responder {
     HttpResponse::Ok()
@@ -8,6 +11,10 @@ async fn health_check() -> impl Responder {
 async fn greet(req: HttpRequest) -> impl Responder {
     let name = req.match_info().get("name").unwrap_or("World");
     format!("Hello {}!", &name)
+}
+
+async fn subscribe(_form: web::Form<FormData>) -> HttpResponse {
+    HttpResponse::Ok().finish()
 }
 
 pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
@@ -23,6 +30,7 @@ pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
             // if its HTTP method is GET.
             .route("/health_check", web::get().to(health_check))
             .route("/{name}", web::get().to(greet))
+            .route("/subscriptions", web::post().to(subscribe))
     })
     // .bind(listener)?
     .listen(listener)?
